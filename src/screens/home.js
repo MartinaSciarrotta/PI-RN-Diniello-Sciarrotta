@@ -116,7 +116,25 @@ function Home(props) {
                                     </Text>
                                 </View>
                             </Pressable>
+
+                            <Pressable
+                                style={styles.buttonComentar}
+                                onPress={() => props.navigation.navigate('Comments', {
+                                    postId: item.id
+                                })}
+                            >
+                                <FontAwesome
+                                    name="comment-o"
+                                    size={18}
+                                    color="#7c3aed"
+                                />
+                                <Text style={styles.textoComentar}>
+                                    Comentar
+                                </Text>
+                            </Pressable>
+
                         </View>
+
                     }
                 />
             }
@@ -193,6 +211,24 @@ const styles = StyleSheet.create({
     likeIcon: {
         marginRight: 8,
     },
+
+    buttonComentar: {
+        backgroundColor: '#ede9fe',
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+        marginTop: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    textoComentar: {
+        color: '#7c3aed',
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
+
 });
 
 export default Home;
