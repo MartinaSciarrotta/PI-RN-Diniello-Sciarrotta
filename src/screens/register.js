@@ -49,6 +49,7 @@ function Register(props) {
         style={styles.field}
         keyboardType='email-address'
         placeholder='Email'
+        placeholderTextColor='#9ca3af'
         onChangeText={text => setEmail(text)}
         value={email}
       />
@@ -57,6 +58,7 @@ function Register(props) {
         style={styles.field}
         keyboardType='default'
         placeholder='Nombre de usuario'
+        placeholderTextColor='#9ca3af'
         onChangeText={text => setUserName(text)}
         value={userName}
       />
@@ -65,6 +67,7 @@ function Register(props) {
         style={styles.field}
         keyboardType='default'
         placeholder='Contraseña'
+        placeholderTextColor='#9ca3af'
         secureTextEntry={true}
         onChangeText={text => setPassword(text)}
         value={password}

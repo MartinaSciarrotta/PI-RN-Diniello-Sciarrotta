@@ -43,6 +43,7 @@ function Login(props) {
         style={styles.field}
         keyboardType='email-address'
         placeholder='Email'
+        placeholderTextColor='#9ca3af'
         onChangeText={text => setEmail(text)}
         value={email}
       />
@@ -51,6 +52,7 @@ function Login(props) {
         style={styles.field}
         keyboardType='default'
         placeholder='Contraseña'
+        placeholderTextColor='#9ca3af'
         secureTextEntry={true}
         onChangeText={text => setPassword(text)}
         value={password}

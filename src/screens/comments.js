@@ -1,140 +1,78 @@
 
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, FlatList, StyleSheet } from 'react-native';
-import firebase from 'firebase';
-import { db, auth } from '../firebase/config';
+import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
+import { db } from '../firebase/config';
+
+import ComentarioForm from '../components/ComentarioForm/ComentarioForm';
 
 function Comments(props) {
     const { postId } = props.route.params;
 
     const [posteo, setPosteo] = useState(null);
-    const [comentario, setComentario] = useState('');
-    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         db.collection('posts')
             .doc(postId)
             .onSnapshot(doc => {
-                if (doc.data() !== undefined) {
-                    setPosteo(doc.data());
-                } else {
-                    setError('No se encontró el posteo');
-                }
-            }, e => {
-                console.log(e);
-                setError('No se pudieron cargar los comentarios');
+                setPosteo(doc.data());
+                setLoading(false);
             });
     }, [postId]);
 
-    function guardarComentario() {
-        if (auth.currentUser === null) {
-            setError('Tenés que iniciar sesión para comentar');
-            return;
-        }
-
-        if (comentario === '') {
-            setError('Escribí un comentario antes de publicar');
-            return;
-        }
-
-        const nuevoComentario = {
-            email: auth.currentUser.email,
-            texto: comentario,
-            createdAt: Date.now()
-        };
-
-        db.collection('posts').doc(postId).update({
-            comentarios: firebase.firestore.FieldValue.arrayUnion(nuevoComentario)
-        })
-            .then(() => {
-                setComentario('');
-                setError('');
-            })
-            .catch(e => {
-                console.log(e);
-                setError('No se pudo guardar el comentario');
-            });
-    }
+    const comentarios = posteo !== null && posteo.comentarios !== undefined
+        ? posteo.comentarios
+        : [];
 
     return (
         <View style={styles.container}>
             <Text style={styles.titulo}>Comentarios</Text>
 
-            {posteo !== null ?
-                <View style={styles.card}>
-                    <Text style={styles.email}>
-                        {posteo.email}
-                    </Text>
-
-                    <Text style={styles.descripcion}>
-                        {posteo.descripcion}
-                    </Text>
-                </View>
+            {loading ?
+                <ActivityIndicator size='large' color='#7c3aed' />
                 :
-                <Text>Cargando publicación...</Text>
-            }
+                <>
+                    <View style={styles.card}>
+                        <Text style={styles.email}>
+                            {posteo.email}
+                        </Text>
 
-            <Text style={styles.subtitulo}>
-                Comentarios de la publicación
-            </Text>
+                        <Text style={styles.descripcion}>
+                            {posteo.descripcion}
+                        </Text>
+                    </View>
 
-            {posteo !== null ?
-                (posteo.comentarios !== undefined ?
-                    (posteo.comentarios.length === 0 ?
+                    <Text style={styles.subtitulo}>
+                        Comentarios de la publicación
+                    </Text>
+
+                    {comentarios.length === 0 ?
                         <Text style={styles.vacio}>
                             Todavía no hay comentarios
                         </Text>
                         :
-                        null)
-                    :
-                    <Text style={styles.vacio}>
-                        Todavía no hay comentarios
-                    </Text>)
-                :
-                null
+                        null
+                    }
+
+                    <FlatList
+                        data={comentarios}
+                        keyExtractor={(item, index) => index.toString()}
+                        renderItem={({ item }) =>
+                            <View style={styles.comentarioCard}>
+                                <Text style={styles.email}>
+                                    {item.email}
+                                </Text>
+
+                                <Text style={styles.descripcion}>
+                                    {item.texto}
+                                </Text>
+                            </View>
+                        }
+                    />
+
+                    <ComentarioForm postId={postId} />
+                </>
             }
-
-            <FlatList
-                data={
-                    posteo !== null ?
-                        (posteo.comentarios !== undefined ?
-                            posteo.comentarios
-                            :
-                            [])
-                        :
-                        []
-                }
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) =>
-                    <View style={styles.comentarioCard}>
-                        <Text style={styles.email}>
-                            {item.email}
-                        </Text>
-
-                        <Text style={styles.descripcion}>
-                            {item.texto}
-                        </Text>
-                    </View>
-                }
-            />
-
-            <TextInput
-                style={styles.field}
-                placeholder="Escribí un comentario..."
-                onChangeText={text => setComentario(text)}
-                value={comentario}
-            />
-
-            <Pressable
-                style={styles.button}
-                onPress={() => guardarComentario()}
-            >
-                <Text style={styles.buttonText}>
-                    Publicar comentario
-                </Text>
-            </Pressable>
-
-            <Text style={styles.error}>{error}</Text>
         </View>
     );
 }
@@ -185,32 +123,6 @@ const styles = StyleSheet.create({
         color: '#6b7280',
         textAlign: 'center',
         marginTop: 20,
-    },
-    field: {
-        backgroundColor: '#ffffff',
-        borderWidth: 1,
-        borderColor: '#ddd6fe',
-        borderRadius: 10,
-        padding: 12,
-        minHeight: 70,
-        textAlignVertical: 'top',
-        marginTop: 10,
-    },
-    button: {
-        backgroundColor: '#7c3aed',
-        paddingVertical: 12,
-        borderRadius: 10,
-        alignItems: 'center',
-        marginTop: 12,
-    },
-    buttonText: {
-        color: '#ffffff',
-        fontSize: 15,
-        fontWeight: 'bold',
-    },
-    error: {
-        color: '#dc2626',
-        marginTop: 10,
     },
 });
 

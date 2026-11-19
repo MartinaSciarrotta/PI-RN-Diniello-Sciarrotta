@@ -8,11 +8,6 @@ function NuevoPost(props) {
     const [postError, setPostError] = useState('');
 
     function guardarPost() {
-        if (!auth.currentUser) {
-            setPostError('Tenés que iniciar sesión para publicar.');
-            return;
-        }
-
         db.collection('posts').add({
             descripcion: descripcion,
             email: auth.currentUser.email,
@@ -49,9 +44,9 @@ function NuevoPost(props) {
                 style={styles.field}
                 keyboardType='default'
                 placeholder='¿Qué querés contar?'
+                placeholderTextColor='#9ca3af'
                 onChangeText={text => setDescripcion(text)}
                 value={descripcion}
-                multiline={true}
             />
 
             <Pressable
@@ -81,7 +76,7 @@ const styles = StyleSheet.create({
     },
     subtitulo: {
         fontSize: 15,
-        color: '#6b7280',
+        color: '#000000',
         marginBottom: 24,
     },
     field: {
@@ -93,8 +88,7 @@ const styles = StyleSheet.create({
         borderStyle: 'solid',
         borderRadius: 10,
         fontSize: 15,
-        minHeight: 100,
-        textAlignVertical: 'top',
+        marginBottom: 6,
     },
     button: {
         backgroundColor: '#7c3aed',
