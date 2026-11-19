@@ -5,13 +5,12 @@ import firebase from 'firebase';
 import { db, auth } from '../firebase/config';
 import { FontAwesome } from '@expo/vector-icons';
 
-
 function Home(props) {
     const [posteos, setPosteos] = useState([]);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        if (!auth.currentUser) {
+        if (auth.currentUser === null) {
             setError('Tenés que iniciar sesión');
             return;
         }
@@ -39,14 +38,14 @@ function Home(props) {
     }, []);
 
     function darLike(id, likes) {
-        if (!auth.currentUser) {
+        if (auth.currentUser === null) {
             setError('Tenés que iniciar sesión');
             return;
         }
 
         const email = auth.currentUser.email;
 
-        if (likes.includes(email)) {
+        if (likes.filter(item => item === email).length > 0) {
             db.collection('posts').doc(id).update({
                 likes: firebase.firestore.FieldValue.arrayRemove(email)
             })
@@ -65,6 +64,16 @@ function Home(props) {
         }
     }
 
+    function usuarioDioLike(likes) {
+        if (auth.currentUser === null) {
+            return false;
+        }
+
+        return likes.filter(
+            item => item === auth.currentUser.email
+        ).length > 0;
+    }
+
     return (
         <View style={styles.container}>
             <Text style={styles.titulo}>Inicio</Text>
@@ -75,68 +84,87 @@ function Home(props) {
             {error !== '' ?
                 <Text style={styles.error}>{error}</Text>
                 :
-                <FlatList
-                    data={posteos}
-                    keyExtractor={item => item.id}
-                    ListEmptyComponent={
+                <View style={styles.lista}>
+                    {posteos.length === 0 ?
                         <Text style={styles.vacio}>
                             Todavía no hay publicaciones
                         </Text>
+                        :
+                        null
                     }
-                    renderItem={({ item }) =>
-                        <View style={styles.card}>
-                            <Text style={styles.email}>
-                                {item.data.email}
-                            </Text>
 
-                            <Text style={styles.descripcion}>
-                                {item.data.descripcion}
-                            </Text>
+                    <FlatList
+                        data={posteos}
+                        keyExtractor={item => item.id}
+                        renderItem={({ item }) =>
+                            <View style={styles.card}>
+                                <Text style={styles.email}>
+                                    {item.data.email}
+                                </Text>
 
-                            <Text style={styles.likes}>
-                                {(item.data.likes || []).length} me gusta
-                            </Text>
+                                <Text style={styles.descripcion}>
+                                    {item.data.descripcion}
+                                </Text>
 
-                            <Pressable
-                                style={styles.buttonLike}
-                                onPress={() => darLike(item.id, item.data.likes || [])}
-                            >
-                                <View style={styles.likeContent}>
+                                <Text style={styles.likes}>
+                                    {(item.data.likes !== undefined
+                                        ? item.data.likes
+                                        : []).length} me gusta
+                                </Text>
+
+                                <Pressable
+                                    style={styles.buttonLike}
+                                    onPress={() => darLike(
+                                        item.id,
+                                        item.data.likes !== undefined
+                                            ? item.data.likes
+                                            : []
+                                    )}
+                                >
+                                    <View style={styles.likeContent}>
+                                        <FontAwesome
+                                            name={usuarioDioLike(
+                                                item.data.likes !== undefined
+                                                    ? item.data.likes
+                                                    : []
+                                            ) ? 'heart' : 'heart-o'}
+                                            size={18}
+                                            color="#7c3aed"
+                                            style={styles.likeIcon}
+                                        />
+
+                                        <Text style={styles.buttonText}>
+                                            {usuarioDioLike(
+                                                item.data.likes !== undefined
+                                                    ? item.data.likes
+                                                    : []
+                                            )
+                                                ? 'Ya no me gusta'
+                                                : 'Me gusta'}
+                                        </Text>
+                                    </View>
+                                </Pressable>
+
+                                <Pressable
+                                    style={styles.buttonComentar}
+                                    onPress={() => props.navigation.navigate(
+                                        'Comments',
+                                        { postId: item.id }
+                                    )}
+                                >
                                     <FontAwesome
-                                        name={(item.data.likes || []).includes(auth.currentUser?.email) ? 'heart' : 'heart-o'}
+                                        name="comment-o"
                                         size={18}
                                         color="#7c3aed"
-                                        style={styles.likeIcon}
                                     />
-
-                                    <Text style={styles.buttonText}>
-                                        {(item.data.likes || []).includes(auth.currentUser?.email)
-                                            ? 'Ya no me gusta'
-                                            : 'Me gusta'}
+                                    <Text style={styles.textoComentar}>
+                                        Comentar
                                     </Text>
-                                </View>
-                            </Pressable>
-
-                            <Pressable
-                                style={styles.buttonComentar}
-                                onPress={() => props.navigation.navigate('Comments', {
-                                    postId: item.id
-                                })}
-                            >
-                                <FontAwesome
-                                    name="comment-o"
-                                    size={18}
-                                    color="#7c3aed"
-                                />
-                                <Text style={styles.textoComentar}>
-                                    Comentar
-                                </Text>
-                            </Pressable>
-
-                        </View>
-
-                    }
-                />
+                                </Pressable>
+                            </View>
+                        }
+                    />
+                </View>
             }
         </View>
     );
@@ -148,6 +176,9 @@ const styles = StyleSheet.create({
         backgroundColor: '#f5f3ff',
         paddingHorizontal: 20,
         paddingTop: 50,
+    },
+    lista: {
+        flex: 1,
     },
     titulo: {
         fontSize: 28,
@@ -211,7 +242,6 @@ const styles = StyleSheet.create({
     likeIcon: {
         marginRight: 8,
     },
-
     buttonComentar: {
         backgroundColor: '#ede9fe',
         paddingVertical: 10,
@@ -228,7 +258,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginLeft: 8,
     },
-
 });
 
 export default Home;

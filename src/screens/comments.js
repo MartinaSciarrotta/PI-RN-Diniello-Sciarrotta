@@ -12,10 +12,10 @@ function Comments(props) {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const unsubscribe = db.collection('posts')
+        db.collection('posts')
             .doc(postId)
             .onSnapshot(doc => {
-                if (doc.exists) {
+                if (doc.data() !== undefined) {
                     setPosteo(doc.data());
                 } else {
                     setError('No se encontró el posteo');
@@ -24,24 +24,22 @@ function Comments(props) {
                 console.log(e);
                 setError('No se pudieron cargar los comentarios');
             });
-
-        return () => unsubscribe();
     }, [postId]);
 
     function guardarComentario() {
-        if (!auth.currentUser) {
+        if (auth.currentUser === null) {
             setError('Tenés que iniciar sesión para comentar');
             return;
         }
 
-        if (comentario.trim() === '') {
+        if (comentario === '') {
             setError('Escribí un comentario antes de publicar');
             return;
         }
 
         const nuevoComentario = {
             email: auth.currentUser.email,
-            texto: comentario.trim(),
+            texto: comentario,
             createdAt: Date.now()
         };
 
@@ -80,19 +78,39 @@ function Comments(props) {
                 Comentarios de la publicación
             </Text>
 
-            <FlatList
-                data={posteo ? (posteo.comentarios || []) : []}
-                keyExtractor={(item, index) => index.toString()}
-                ListEmptyComponent={
+            {posteo !== null ?
+                (posteo.comentarios !== undefined ?
+                    (posteo.comentarios.length === 0 ?
+                        <Text style={styles.vacio}>
+                            Todavía no hay comentarios
+                        </Text>
+                        :
+                        null)
+                    :
                     <Text style={styles.vacio}>
                         Todavía no hay comentarios
-                    </Text>
+                    </Text>)
+                :
+                null
+            }
+
+            <FlatList
+                data={
+                    posteo !== null ?
+                        (posteo.comentarios !== undefined ?
+                            posteo.comentarios
+                            :
+                            [])
+                        :
+                        []
                 }
+                keyExtractor={(item, index) => index.toString()}
                 renderItem={({ item }) =>
                     <View style={styles.comentarioCard}>
                         <Text style={styles.email}>
                             {item.email}
                         </Text>
+
                         <Text style={styles.descripcion}>
                             {item.texto}
                         </Text>
@@ -105,7 +123,6 @@ function Comments(props) {
                 placeholder="Escribí un comentario..."
                 onChangeText={text => setComentario(text)}
                 value={comentario}
-                multiline={true}
             />
 
             <Pressable

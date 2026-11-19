@@ -31,7 +31,7 @@ function NuevoPost(props) {
     }
 
     function onSubmit() {
-        if (descripcion.trim() === '') {
+        if (descripcion === '') {
             setPostError('Escribí algo antes de publicar');
         } else {
             guardarPost();
