@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import { db } from '../firebase/config';
 
@@ -20,9 +20,13 @@ function Comments(props) {
             });
     }, [postId]);
 
-    const comentarios = posteo !== null && posteo.comentarios !== undefined
-        ? posteo.comentarios
-        : [];
+    let comentarios = [];
+
+    if (posteo !== null) {
+        if (posteo.comentarios !== undefined) {
+            comentarios = posteo.comentarios;
+        }
+    }
 
     return (
         <View style={styles.container}>
